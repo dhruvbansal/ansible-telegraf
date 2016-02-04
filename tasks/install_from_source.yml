@@ -1,0 +1,39 @@
+---
+
+- name: Create telegraf group
+  group: name="{{ telegraf_group }}"
+  
+- name: Create telegraf user
+  user: name="{{ telegraf_user }}" home="{{ telegraf_home_dir}}" comment="Telegraf user" group="{{ telegraf_group }}" shell="/bin/false" createhome=yes
+  
+- name: Create configuration directory
+  file: state=directory path="{{ telegraf_conf_dir }}/telegraf.d" owner=root group=root mode=0755
+
+- name: Create log directory
+  file: state=directory path="{{ telegraf_log_dir }}" owner="{{ telegraf_user }}" group="{{ telegraf_group }}" mode=0755
+
+- name: Create telegraf src parent directory
+  file: state=directory path="{{ telegraf_go_path }}/{{telegraf_src_dir}}" owner=root group=root
+
+- name: Fetch telegraf source
+  git: clone=yes dest="{{ telegraf_go_path}}/{{telegraf_src_dir}}/telegraf" repo="{{telegraf_src_url}}" update=yes
+
+- name: Build telegraf source
+  command: make
+  notify: "Restart Telegraf"
+  environment:
+    GOPATH: "{{ telegraf_go_path}}"
+  args:
+    chdir: "{{ telegraf_go_path}}/{{telegraf_src_dir}}/telegraf"
+    creates: "{{ telegraf_go_path}}/{{telegraf_src_dir}}/telegraf/telegraf"
+
+- name: Link telegraf binary into PATH
+  file: state=link src="{{ telegraf_go_path}}/{{telegraf_src_dir}}/telegraf/telegraf" dest="/usr/local/bin/telegraf" owner=root group=root mode=0755
+
+- name: Create Upstart configuration file
+  when: ansible_os_family == "Debian"
+  template: src=upstart.conf.j2 dest=/etc/init/telegraf.conf owner=root group=root mode=0644
+  notify: "Restart Telegraf"
+
+- name: Start telegraf service
+  service: name=telegraf state=started enabled=yes

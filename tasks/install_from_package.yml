@@ -1,0 +1,29 @@
+---
+
+- name: "Fetch telegraf installation package | RedHat"
+  when: ansible_os_family == "RedHat"
+  action: get_url
+          url=http://get.influxdb.org/telegraf/telegraf-{{ telegraf_agent_version }}-1.x86_64.rpm
+          dest=/usr/local/src/telegraf_{{ telegraf_agent_version }}-1.x86_64.rpm
+          mode=0440
+
+- name: "Install telegraf package | RedHat"
+  when: ansible_os_family == "RedHat"
+  action: yum
+          name=/usr/local/src/telegraf_{{ telegraf_agent_version }}-1.x86_64.rpm
+          state=installed
+  notify: "Restart Telegraf"
+
+- name: "Fetch telegraf installation package | Debian"
+  when: ansible_os_famiy == "Debian"
+  action: get_url
+          url=http://get.influxdb.org/telegraf/telegraf_{{ telegraf_agent_version }}-1_amd64.deb
+          dest=/usr/local/src/telegraf_{{ telegraf_agent_version }}-1_amd64.deb
+          mode=0440
+
+- name: "Install telegraf package | Debian"
+  when: ansible_os_famiy == "Debian"
+  action: apt
+          deb=/usr/local/src/telegraf_{{ telegraf_agent_version }}-1_amd64.deb
+          state=installed
+  notify: "Restart Telegraf"

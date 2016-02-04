@@ -1,36 +1,22 @@
 ---
-# tasks file for ansible-telegraf
 
-- name: "Install the correct repository"
-  include: "RedHat.yml"
-  when: ansible_os_family == "RedHat"
+- include: install_from_source.yml
+  when: telegraf_install_from_source
+  tags:
+    - telegraf
 
-- name: "Install the correct repository"
-  include: "Debian.yml"
-  when: ansible_os_family == "Debian"
-
-- name: "Set fact by remove the dots from version"
-  action: set_fact
-          telegraf_ver="{{ telegraf_agent_version.replace('.','') }}"
-
-- name: "Copy the template for versions < 0.10.0"
-  action: template
-          src=etc-opt-telegraf-telegraf.conf.j2
-          dest=/etc/opt/telegraf/telegraf.conf
-          owner=root
-          group=root
-          mode=644
-  when: telegraf_ver < 100
-  sudo: yes
-  notify: "Restart Telegraf"
-
-- name: "Copy the template for versions >= 0.10.0"
+- include: install_from_package.yml
+  when: not telegraf_install_from_source
+  tags:
+    - telegraf
+    
+- name: "Copy configuration file"
   action: template
           src=telegraf.conf.j2
-          dest=/etc/telegraf/telegraf.conf
+          dest="{{ telegraf_conf_dir }}/telegraf.conf"
           owner=root
           group=root
           mode=644
-  when: telegraf_ver >= 100
-  sudo: yes
   notify: "Restart Telegraf"
+  tags:
+    - telegraf

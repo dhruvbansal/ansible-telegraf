@@ -1,7 +1,19 @@
 ---
 # defaults file for ansible-telegraf
 
-telegraf_agent_version: 0.10.1
+telegraf_agent_version: "0.10.1"
+
+telegraf_install_from_source: false
+telegraf_src_url: "https://github.com/influxdata/telegraf"
+telegraf_src_dir: "src/github.com/influxdata"
+telegraf_go_path: "/usr/local/src/go"
+telegraf_user: telegraf
+telegraf_group: telegraf
+
+telegraf_conf_dir: /etc/telegraf
+telegraf_home_dir: /var/run/telegraf
+telegraf_log_dir:  /var/log/telegraf
+
 telegraf_agent_interval: 10
 telegraf_agent_debug: False
 telegraf_agent_round_interval: True
